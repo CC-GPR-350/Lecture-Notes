@@ -187,8 +187,8 @@ Penetration is a scalar that describes how much the spheres overlap.
 
 While it is easy to visualize, it may not be obvious how to calculate
 it. Intuitively, we know that, because the spheres are overlapping,
-$r_1+r_2<d$ holds. So, we need to move the spheres such that $d$
-increases to be exactly $r_1+r_2$. So we need to add some value to
+$r_1 + r_2 < d$ holds. So, we need to move the spheres such that $d$
+increases to be exactly $r_1 + r_2$. So we need to add some value to
 $d$.
 
 To determine this quantity algebraically, we can set up the equation
@@ -261,21 +261,21 @@ Now, we can simply total up the inverse mass of the system and compare
 ratios to determine how far sphere 1 should move and how far sphere 2
 should move:
 
-$$d_1^{pct} = \frac{m_1^{-1}}{m_1^{-1} + m_2^{-1}$$
-$$d_2^{pct} = \frac{m_2^{-1}}{m_1^{-1} + m_2^{-1}$$
+$$d_{1}^{pct} = \frac{m_{1}^{-1}}{m_1^{-1} + m_2^{-1}}$$
+$$d_2^{pct} = \frac{m_2^{-1}}{m_1^{-1} + m_2^{-1}}$$
 
 where $d_1^{pct}$ and $d_2^{pct}$ are the percentages of the total
 displacement that sphere 1 and sphere 2 should adopt, respectively.
 
-** Bringing It All Together
+** Bringing It All Togetherp
 
 Finally, we can use this to determine the total displacement of sphere
 1 and sphere 2:
 
-$$\vec{\Delta s_1} = \hat{n} d_1^{pct} p$$
+$$\vec{\Delta s_1} = \hat{n} d^{pct}_1 p$$
 $$\vec{\Delta s_2} = -\hat{n} d_2^{pct} p$$
 
-Or, letting $d_1=d_1^{pct}p$ and $d_2=d_2^{pct}p$:
+Or, letting $d_1 = d_1^{pct} p$ and $d_2 = d_2^{pct} p$:
 
 $$\Delta \vec{s_1} = \hat{n} d_1$$
 $$\Delta \vec{s_2} = -\hat{n} d_2$$

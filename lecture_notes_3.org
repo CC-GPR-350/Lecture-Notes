@@ -72,6 +72,7 @@ examine how to resolve collision between a sphere and a plane. We will
 see there are many parts of the process that are the same, and a few
 parts that are different.
 
+** Checking If Two Spheres Overlap
 Let's consider two overlapping spheres:
 
 #+ATTR_HTML: :width 200px
@@ -80,7 +81,86 @@ Let's consider two overlapping spheres:
 [[./circle_overlap_nolines.png]]
 
 We need to check if these two circles are overlapping. Obviously, we
-can see that they are. But our code has to make this decision based on 
+can see that they are. But our code has to make this decision based on
+the spheres' radii and the distance between them.
+
+If we know the distance between the centers of the spheres, $d$, we
+can see a few patterns emerge in the relationship between $d$ and the
+spheres:
+
+1. If the spheres are large and $d$ is small, the spheres /are
+   colliding/.
+2. If the spheres are small and $d$ is large, the spheres /are _not_
+   colliding/.
+
+We can also see that, if $d$ is exactly equal to the sum of the radii,
+that is if $d = r_1+r_2$ where $r_1$ is the radius of the first sphere
+and $r_2$ is the radius of the second sphere, the spheres are
+touching, but are just short of colliding.
+
+#+begin_comment
+Insert a figure here with spheres just barely touching. Maybe also
+some figures earlier with small spheres far apart and large spheres
+nearby.
+#+end_comment
+
+This is our key insight. If the spheres are closer than this, they
+must be overlapping. So, to see if two spheres overlap, we use an
+inequality based on the above equation:
+
+$$r_1+r_2 > d$$ means the spheres are colliding.
+
+$$r_1+r_2\leq d$$ means the spheres are _not_ colliding.
+
+This is all we need to determine if the spheres are colliding. Now we
+need to calculate d.
+
+*** Calculating the Distance Between Spheres
+
+If $\vec{s_1}$ and $\vec{s_2}$ are the vectors representing the center
+of sphere 1 and sphere 2 respectively, we can get the vector from
+$\vec{s_1}$ to $\vec{s_2}$ using simple vector subtraction:
+
+$$\vec{d}=\vec{s_1} - \vec{s_2}$$
+
+The distance $d$ is the magnitude of this vector -- that is,
+$d=||\vec{d}||$.
+
+Using this formula for $d$, we can calculate whether two spheres are
+overlapping using the inequality that was previously described.
+However, there's an opportunity for optimization here -- calculating
+the magnitude of a vector involves calculating a square root. We can
+rewrite our inequality by squaring both sides, which will allow us to
+calculate the square magnitude of $\vec{d}$ instead of calculating the
+magnitude directly. Thus, if the following inequality holds, then the
+spheres are colliding:
+
+$$(r_1+r_2)^2 > d^2$$
+
+*** Implementing a Sphere-Sphere Overlap Check
+
+Using some C++-like pseudocde, we can implement the above check as
+following:
+
+#+begin_src C++ -n
+  bool AreColliding(Sphere s1, Sphere s2)
+  {
+    float d_sq = (s2 - s1).SqrMagnitude();
+    float sum_of_radii = s1.r + s2.r;
+    bool test = sum_of_radii * sum_of_radii > d_sq;
+    return test; (ref:Return Statement)
+  }
+#+end_src
+
+Note that the line labeled [[(Return Statement)]] is the same as doing
+
+#+begin_src C++
+  if (test)
+    return true;
+  return false;
+#+end_src
+
+but without requiring an =if= statement.
 
 ** Aside: Why not use Object-Oriented Programming?
 
@@ -162,3 +242,21 @@ collision with s1. But the second check is completely unnecessary --
 we only need to resolve the collision between two spheres (or any
 shape) once. After s1 has checked against s2, that pair of shapes has
 been successfully checked and does not need to be checked again.
+* How To Move Two Colliding Objects
+
+Now that we know two objects are colliding, our next step is to move
+each sphere so that it no longer collides with the other sphere.
+
+We determined in our last section how to identify when two spheres are
+overlapping, but we also came across a way to determine if two spheres
+are exactly touching but /not/ overlapping. That was in the case where
+$r_1+r_2=d$. We want to move our spheres into this state. To do this,
+first we will calculate how far we need to move the spheres in total
+to keep them from overlapping. We will proceed by figuring out /how
+much the spheres are overlapping/, which is exactly how much they need
+to move to no longer overlap.
+
+** Determining Penetration
+
+Penetration is a scalar that describes how much the spheres or other
+objects overlap.

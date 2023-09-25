@@ -162,7 +162,166 @@ Note that the line labeled [[(Return Statement)]] is the same as doing
 
 but without requiring an =if= statement.
 
-** Aside: Why not use Object-Oriented Programming?
+* How To Move Two Colliding Objects
+
+Now that we know two objects are colliding, our next step is to move
+each sphere so that it no longer collides with the other sphere.
+
+We determined in our last section how to identify when two spheres are
+overlapping, but we also came across a way to determine if two spheres
+are exactly touching but /not/ overlapping. That was in the case where
+$r_1+r_2=d$. We want to move our spheres into this state. To do this,
+first we will calculate how far we need to move the spheres in total
+to keep them from overlapping. We will proceed by figuring out /how
+much the spheres are overlapping/, which is exactly how much they need
+to move to no longer overlap.
+
+** Determining Penetration
+
+Penetration is a scalar that describes how much the spheres overlap.
+
+#+ATTR_HTML: :width 200px
+#+ATTR_LATEX: :width 200px
+#+CAPTION: Two Overlapping Circles. Distance is the dotted blue line. Penetration is the solid red line.
+[[./circle_overlap_highres.png]]
+
+While it is easy to visualize, it may not be obvious how to calculate
+it. Intuitively, we know that, because the spheres are overlapping,
+$r_1+r_2<d$ holds. So, we need to move the spheres such that $d$
+increases to be exactly $r_1+r_2$. So we need to add some value to
+$d$.
+
+To determine this quantity algebraically, we can set up the equation
+
+$$r_1+r_2=d+x$$,
+
+where $x$ is the quantity we're looking for. Solving for $x$, we find
+$$x=r_1+r_2-d$$.
+
+So the value of the penetration, which is the same as the amount by
+which we need to move the spheres to keep them from overlapping, is
+$p=r_1+r_2-d$. We will refer to the penetration as $p$ from now on.
+
+Our next step is to determine what direction to move each sphere. To
+do this, we will determine a very important vector, called the
+/normal/ of the collision, and which we will designate as $\hat{n}$.
+
+** Determining the Normal
+Recall that, to calculate $d$, we used vector subtraction to find a
+vector, $\vec{d}$ that started at the center of sphere 1 and ended at
+the center of sphere 2. This vector is always the most direct path
+from one sphere to another. As such, it represents the axis upon which
+we'd like to move our spheres. Therefore, $\hat{n}=\frac{\vec{d}}{||\vec{d}||}$.
+
+Since we chose $\vec{d}$ as $\vec{s_1}-\vec{s_2}$, our normal vector
+$\hat{n}$ goes from $\vec{s_2}$ to $\vec{s_1}$. That means $\hat{n}$
+points in the direction we would like $\vec{s_1}$ to move in, and
+$-\hat{n}$ points in the direction we would like $\vec{s_2}$ to move
+in.
+
+** Determining Displacement for Each Sphere
+
+We now the the penetration $p$ and the normal $\hat{n}$. All that
+remains is to combine them to move each sphere.
+
+One option would be to move $\vec{s_1}$ in the direction of $\hat{n}$
+and with magnitude $p$. That would cause $\vec{s_1}$ to move enough so
+that $\vec{s_1}$ and $\vec{s_2}$ are no longer in contact.
+
+Another option would be to divide penetration evenly, and move each
+sphere $\frac{1}{2}p$ in the direction of $\pm\hat{n}$. This works
+when the particles have the same mass, but we would see some very
+unintuitive behavior if we experimented with using this technique of
+particles of very different masses. For example, a ping pong ball
+hitting a bolder would move the boulder just as much as it moves the
+ping pong ball. Therefore, we still need to account for mass.
+
+** Accounting for Mass in Displacement
+
+The intuivite idea behind accounting for mass is that /heavy objects
+should move less than light objects/. We already know the total
+movement each object will make is $p$, the penetration. A nice way to
+divide this problem up is to frame it as the question, /What
+percentage of $p$ should each particle move?/
+
+A simple way to solve this is to say that objects should move relative
+to how much mass they take up in the total system. That is, if $m_1$
+and $m_2$ are the masses of sphere 1 and sphere 2, respectively, and
+$m_1=2$ and $m_2=1$, we would expect sphere 1 to move /half/ as far as
+sphere 2, because it is /twice/ as heavy.
+
+This is somewhat simplified by the the manner in which we're storing
+our masses. We don't have direct access to $m_1$ -- instead, we have
+$m_1^{-1}$. Luckily, that makes the calculation somewhat more
+intuitive -- now, if $m_1^{-1}=2$ and $m_2^{-1}=1$, sphere 1 should
+move /twice/ as far as sphere 2, because its inverse mass is /twice as
+large/.
+
+Now, we can simply total up the inverse mass of the system and compare
+ratios to determine how far sphere 1 should move and how far sphere 2
+should move:
+
+$$d_1^{pct} = \frac{m_1^{-1}}{m_1^{-1} + m_2^{-1}$$
+$$d_2^{pct} = \frac{m_2^{-1}}{m_1^{-1} + m_2^{-1}$$
+
+where $d_1^{pct}$ and $d_2^{pct}$ are the percentages of the total
+displacement that sphere 1 and sphere 2 should adopt, respectively.
+
+** Bringing It All Together
+
+Finally, we can use this to determine the total displacement of sphere
+1 and sphere 2:
+
+$$\vec{\Delta s_1} = \hat{n} d_1^{pct} p$$
+$$\vec{\Delta s_2} = -\hat{n} d_2^{pct} p$$
+
+Or, letting $d_1=d_1^{pct}p$ and $d_2=d_2^{pct}p$:
+
+$$\Delta \vec{s_1} = \hat{n} d_1$$
+$$\Delta \vec{s_2} = -\hat{n} d_2$$
+
+** Avoiding Redundant Calculations
+
+As a final note, observe that the penetration, $p$, tells us whether
+or not two spheres are colliding. While we wrote a function that tests
+if two spheres overlap, we don't need to call this function directly
+in our calculations of displacement. That's because, if $p\leq 0$,
+it's impossible for the two spheres to be overlapping. Therefore, when
+writing our code to move two spheres, we can avoid writing this:
+
+#+begin_src C++
+  void ApplyDisplacementIfColliding(Sphere& s1, Sphere& s2)
+  {
+    if (!AreOverlapping(s1, s2)) return;
+
+    float penetration = CalculatePenetration(s1, s2);
+    vector3 normal = CalculateNormal(s1, s2);
+    float pctToMoveS1 = CalculatePctToMoveS1(s1, s2);
+    float pctToMoveS2 = CalculatePctToMoveS2(s1, s2);
+    s1.position += normal * pctToMoveS1 * penetration;
+    s2.position += normal * pctToMoveS2 * penetration;
+  }
+#+end_src
+
+By instead writing this:
+
+#+begin_src C++
+  void ApplyDisplacementIfColliding(Sphere& s1, Sphere& s2)
+  {
+    float penetration = CalculatePenetration(s1, s2);
+
+    if (penetration <= 0) return;
+    vector3 normal = CalculateNormal(s1, s2);
+    float pctToMoveS1 = CalculatePctToMoveS1(s1, s2);
+    float pctToMoveS2 = CalculatePctToMoveS2(s1, s2);
+    s1.position += normal * pctToMoveS1 * penetration;
+    s2.position += normal * pctToMoveS2 * penetration;
+  }
+#+end_src
+
+Which allows us to avoid redundant calculations.
+
+* Aside: Why not use Object-Oriented Programming?
 
 Tasks such as collision detection are poorly suited to an
 object-oriented programming paradigm. OOP encourages programmers to
@@ -176,7 +335,7 @@ for us:
 2. We detect collisions across /pairs of objects/, not across /each
    individual object/.
 
-*** Algorithms Operate on Pairs of Types
+** Algorithms Operate on Pairs of Types
 To see why this causes problems for us, let's look at what would
 happen if we tried to write an IsOverlapping() function between a
 sphere and a plane using OOP:
@@ -212,7 +371,7 @@ our collision algorithms as functions:
 
 : bool IsOverlapping(Sphere s, Plane p);
 
-*** Algorithms Operate on Pairs of Objects
+** Algorithms Operate on Pairs of Objects
 
 Let's assume we took the OOP approach and defined a
 =Sphere::IsOverlapping(Sphere s)= funciton. This doesn't seem so bad
@@ -242,21 +401,3 @@ collision with s1. But the second check is completely unnecessary --
 we only need to resolve the collision between two spheres (or any
 shape) once. After s1 has checked against s2, that pair of shapes has
 been successfully checked and does not need to be checked again.
-* How To Move Two Colliding Objects
-
-Now that we know two objects are colliding, our next step is to move
-each sphere so that it no longer collides with the other sphere.
-
-We determined in our last section how to identify when two spheres are
-overlapping, but we also came across a way to determine if two spheres
-are exactly touching but /not/ overlapping. That was in the case where
-$r_1+r_2=d$. We want to move our spheres into this state. To do this,
-first we will calculate how far we need to move the spheres in total
-to keep them from overlapping. We will proceed by figuring out /how
-much the spheres are overlapping/, which is exactly how much they need
-to move to no longer overlap.
-
-** Determining Penetration
-
-Penetration is a scalar that describes how much the spheres or other
-objects overlap.

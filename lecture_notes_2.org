@@ -1,0 +1,256 @@
+#+TITLE: Forces and Springs
+#+STARTUP: latexpreview
+
+* Review
+
+** Our Particle class so far
+
+Here is a summary of some of the key declarations of our Particle2D
+class so far:
+
+#+BEGIN_SRC C
+  using System;
+  using UnityEngine;
+
+  class Particle2D : Monobehavior
+  {
+    public Vector2 velocity;
+    public Vector2 acceleration;
+    public float damping;
+    public float inverseMass;
+    public Vector2 accumulatedForces;
+
+    public void FixedUpdate()
+    {
+      Integrator.Integrate(this, Time.fixedDeltaTime);
+    }
+
+  }
+
+#+END_SRC
+
+We have yet to do much with the member variables =acceleration=,
+=inverseMass=, and =accumulatedForces=. They will be the focus of this
+lesson.
+
+** Newton's Second Law
+
+$$\Sigma F = ma$$,
+
+and its equivalent formation
+
+$$a = \frac{\Sigma F}{m}$$,
+
+which we use (or plan to use) in our integrator to calculate
+acceleration based on the forces acting on a particle.
+
+* D'Alembert's Principle
+
+D'Alembert's Principle states that, when calculating the forces acting
+on an object, we can reduce it to a single force as such:
+
+$$F_{total}=\Sigma F$$
+
+In essence, we can use a single force to substitute for several
+forces. This will prove to be very convenient for our physics engine,
+as it means *we do not have to keep track of individual forces*.
+Instead, we can accumulated forces as they are added to our particle,
+and the resulting vector will work just as well as each of the forces
+themselves.
+
+* Software Architecture
+
+** Adding forces to a particle
+
+Typically in a physics engine, a class like a Particle2D is meant to
+contain data and to do physics calculations. To interact with the
+outside world, it is usually manipulated by some other script that
+contains game logic. To that end, we will add a mechanism for other
+scripts to add forces to our Particle2D:
+
+#+BEGIN_SRC C
+  public void AddForce(Vector2 force)
+  {
+    accumulatedForces += force;
+  }
+#+END_SRC
+
+Other scripts may then add forces to our particle externally. For
+example, a momentary gust of wind may add force like so:
+
+#+BEGIN_SRC C
+  public void Update()
+  {
+    Particle2D[] targetedParticles = FindAffectedParticles();
+    foreach (Particle2D particle in targetedParticles)
+      {
+	 // blow affected particles to the left.
+	particle.addForce(new Vector2(-5f, 0));
+      }
+  }
+#+END_SRC
+
+We will explore some alternative options of how to add forces to our particles.
+
+** Improving the Integrator
+
+Now that our particles are keeping track of their forces, we will need
+to upgrade our integrator so it can take these forces into account.
+
+We will apply Newton's Second Law in concert with D'Alembert's
+Principle to calculate acceleration based off of forces. Simply, the
+formula we will use is:
+
+$$a = \frac{\Sigma F}{m} $$
+
+Or, in terms of our variables, =acceleration = accumulatedForces * inverseMass=.
+
+*** Important Considerations for the Integrator
+
+*Do not accidentally add to acceleration when what you mean to do is
+recalculate it.* Note that, while velocity is /updated/ each frame in
+our integrator, acceleration is /recalculated/ each frame. That is,
+the acceleration of the previous frame is not used to calculate the
+acceleration in this frame.
+
+*Be sure to reset accumulated forces to the zero vector at
+the end of each frame.* We want to re-apply forces
+each frame rather than letting them accumulate from frame to frame.
+
+** The Force Generator abstract class
+
+Oftentimes, we have forces that use complex logic to calculate their
+application of force each frame. We often prefer to isolate these
+forces into their own module[fn:1]. To isolate this kind of logic in
+Unity, we typically make a new Component (i.e., a script that
+inherits from Monobehaviour).
+
+Our goal is to make a script like the wind blowing example above, but
+that, instead of determining which game objects to apply itself to, it
+will be attached to a game object that has a Particle2D component on
+it as well. Then, if we want to apply a force to some objects but not
+others, we simply attach a component to each object that we would like
+the force to apply to.
+
+Example usage might look like this:
+
+#+BEGIN_SRC C
+  // In script WindForceGenerator.cs
+
+  void FixedUpdate()
+  {
+    Particle2D target = gameObject.GetComponent<Particle2D>()
+    target.addForce(new Vector2(-5.0f, 0));
+  }
+
+#+END_SRC
+
+We will reconfigure the code so that the /particle/ activates the
+forces rather than the forces activating themselves:
+
+#+BEGIN_SRC C
+  // In script Particle.cs
+
+  void FixedUpdate()
+  {
+    ForceGenerator[] generators = GetComponents<ForceGenerator>();
+    foreach (ForceGenerator generator in generators)
+      {
+	generator.applyForce(this);
+      }
+  }
+
+  // In script WindForceGenerator.cs
+  class WindForceGenerator : ForceGenerator
+  {
+    public void applyForce(Particle2D particle)
+    {
+      particle.addForce(new Vector2(-5.0f, 0));
+    }
+  }
+#+END_SRC
+
+To make the above code work, we will need to add the ForceGenerator
+abstract class, which needs only to inherit from MonoBehaviour and add
+a single abstract method, =void applyForce(Particle2D particle)=.
+
+#+BEGIN_SRC C
+  abstract class ForceGenerator : MonoBehaviour
+  {
+    void applyForce(Particle2D particle);
+  }
+#+END_SRC
+
+These ForceGenerator components can exist for an extended period of
+time, and can be created and destroyed at will. For this reason, they
+provide a convenient method of applying forces over a long period of
+time. All we have to do is instantiate an instance of the specific
+force generator we care about on the object we want it to act upon. It
+will continue to operate until we destroy it.
+
+We are now ready to try our hand at implementing specific forces.
+
+* Example forces
+** Hooke's Law
+
+Hooke's Law, named after the early modern physicist Robert Hooke (and
+which is misspelled in our textbook as "Hook's Law"), is a law
+that dictates the force applied by a spring. It is simple to express:
+
+$$F_S=-kx$$
+
+where $k$ is the spring constant and $x$ is the spring's displacement
+from its rest length.
+
+We can think of $k$ as the "stiffness" of the spring. A higher $k$ means
+more force will be applied per unit of displacement.
+
+$x$, which often means "position," in this case actually indicates
+displacement from rest length. Every spring has a /rest length/, which
+is not explicitly shown in Hooke's Law. $x$ is how far away one end of
+the spring is from its rest length. If a spring has a rest length of 2
+units, and one end of the spring is stretched to be 5 units long, then
+$x = |5 - 2| = 3$ and $F=-3k$. If we let $k$ be 2 for this spring, the
+total force is $F=-6$, and so the force applied to one end of the
+string will be 6 units /towards the other end of the spring/.
+
+Hooke's Law generates oscillating, sinusoidal (meaning sine-like)
+motion. If it seems unintuitive as to such an equation would generate
+a sinusoidal curve, I recommend reading the blog post [[https://maxilerner.blogspot.com/2022/10/hookes-law-sine-and-differential.html][here]].
+
+*** Dangers of Hooke's Law
+
+Hooke's Law falls apart when the total calculated force is very large.
+Therefore, very stiff springs aren't suitable to be simulated using
+Hooke's Law. Additionally, particles with very small masses or too
+little damping will similarly behave oddly under Hooke's Law.
+
+** Inverse-Square Law
+
+Usually, when one thing that "emits" something with some power is $r$
+distance away from some other thing, the "emissions" that reach the
+other object are inversely proportional to $r^2$. We have already seen
+this with gravity. Recall the equation for the force of gravity:
+
+$$F_g=G\frac{m_1m_2}{r^2}$$
+
+if we consider one mass "emitting" gravity spherically, it makes sense
+that we would see $r^2$ in the denominator of the resulting equation.
+Thus, it follows the so-called "inverse-square law."
+
+Many things in nature follow the inverse-square law, including the
+electromagnetic force, emissions of light, and the force of an
+explosion.
+
+For the assignment that will be given next class, you will be using
+the inverse square law to implement generic attractive and repulsive
+forces that interact with the mouse.
+
+* Footnotes
+
+[fn:1] Different programming languages and game development tools have
+different ways of isolating game logic. These may take the form of
+specific classes, compiled binary libraries with specific APIs, or
+script files. In Unity's case, they are usually Components, but in C++
+in general they may be independent classes that share an interface,
+while in Python they may be single script files.

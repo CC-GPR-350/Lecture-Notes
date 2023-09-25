@@ -1,0 +1,164 @@
+#+TITLE: Collision Detection
+#+AUTHOR: Scott Barrett
+
+* Basic Idea
+
+Collision detection involves two major steps: detection, and reaction.
+To detect collision, we have two basic options: Either /predict/ that
+a collision is about to occur and react accordingly, or /observe/ that
+a collision has just occurred and work to correct it. The second
+approach is much simpler, and is the approach we'll take in this
+class.
+
+Each frame, we will look at every pair of object that could possibly
+collide. Then, we'll do a test to see if that pair of objects is
+overlapping. Overlapping shapes are, of course, colliding.
+
+Once we've found a pair of overlapping shapes, we'll first move them
+apart from one another so that, instead of overlapping, they're
+exactly touching. In real life, physical objects can never overlap --
+they can only touch one another. So we'll "correct" the overlap to
+make our scene look natural.
+
+After correct the positions of the objects, we'll modify their
+velocities so that they "bounce" off of each other realistically.
+While in reality objects only change their velocities based off of the
+forces they experience, and so velocity is never directly modified, in
+the case of collisions the forces are so large and act for such a
+short duration that they take place over much less than a single frame
+of gameplay. Therefore, it works best to calculate the new velocities
+directly rather than work indirectly through forces.
+
+Once we've corrected the positions and velocities of the objects, our
+work is done! In essence, the plan looks like this:
+
+1. Update each object as normal each frame
+2. Check to see if two objects collided
+3. Move colliding objects apart from each other so they no longer
+   overlap
+4. Modify the velocity of the colliding objects so they bounce off of
+   each other realistically.
+
+Since step 1 is already happening from our previous work, we will need
+to implement steps 2, 3, and 4.
+
+* How To Check If Two Objects Are Colliding
+
+At a high level, to detect whether or not objects are colliding in the
+scene, *you must iterate through /every pair/ of possibly colliding
+objects*. Below is some sample C++ code that checks all the spheres in
+the array =spheres= to see if they are colliding with any /other/
+spheres in that same array:
+
+#+BEGIN_SRC C++
+  for (int i = 0; i < nSpheres; i++)
+  {
+    Sphere s1 = spheres[i];
+    for (int j = i+1; j < nSpheres; j++)
+    {
+      Sphere s2 = spheres[j];
+      if (AreOverlapping(s1, s2))
+      {
+	std::cout << "Spheres are colliding!\n";
+      }
+    }
+  }
+#+END_SRC
+
+Knowing whether or not two objects are colliding requires us to know
+what shape they are. We will begin our examples by looking at how to
+detect and resolve collision between two spheres. Afterwards, we will
+examine how to resolve collision between a sphere and a plane. We will
+see there are many parts of the process that are the same, and a few
+parts that are different.
+
+Let's consider two overlapping spheres:
+
+#+ATTR_HTML: :width 200px
+#+ATTR_LATEX: :width 200px
+#+CAPTION: Two Overlapping Circles.
+[[./circle_overlap_nolines.png]]
+
+We need to check if these two circles are overlapping. Obviously, we
+can see that they are. But our code has to make this decision based on 
+
+** Aside: Why not use Object-Oriented Programming?
+
+Tasks such as collision detection are poorly suited to an
+object-oriented programming paradigm. OOP encourages programmers to
+have all objects "take care" of themselves, rather than having
+external functions that modify objects directly. However, when
+detecting collisions, we come across two major issues that OOP creates
+for us:
+
+1. We detect collisions on /pairs of types/, not on single types
+   themselves.
+2. We detect collisions across /pairs of objects/, not across /each
+   individual object/.
+
+*** Algorithms Operate on Pairs of Types
+To see why this causes problems for us, let's look at what would
+happen if we tried to write an IsOverlapping() function between a
+sphere and a plane using OOP:
+
+#+NAME: Sphere.h
+#+BEGIN_SRC C++
+  class Sphere
+  {
+  public:
+    bool IsOverlapping(Plane p);
+    // ... more code here ...
+  };
+#+END_SRC
+
+#+NAME: Plane.h
+#+BEGIN_SRC C++
+  class Plane
+  {
+  public:
+    bool IsOverlapping(Sphere s);
+    // ... more code here ...
+  };
+#+END_SRC
+
+If we implement both =Sphere::IsOverlapping(Plane p)= and
+=Plane::IsOverlapping(Sphere s)=, we will be writing the exact same
+code in two different places, because the algorithm to detect whether
+a sphere and a plane overlap is the same as the algorithm to detect
+whether a plane and a sphere overlap!
+
+Because of this fact, we'll have a much easier time if we simply write
+our collision algorithms as functions:
+
+: bool IsOverlapping(Sphere s, Plane p);
+
+*** Algorithms Operate on Pairs of Objects
+
+Let's assume we took the OOP approach and defined a
+=Sphere::IsOverlapping(Sphere s)= funciton. This doesn't seem so bad
+-- after all, we can now test to see if two spheres are overlapping,
+and we've only implemented our algorithm once. Even in this case, we
+will run into trouble when we try to call =IsOverlapping()= on each
+sphere.
+
+Let's take the naïve solution and, on each =FixedUpdate()=, have each
+sphere react if it is overlapping another sphere in the scene:
+
+#+BEGIN_SRC C++
+  void Sphere::FixedUpdate()
+  {
+    std::vector<Sphere> spheres = FindObjectsOfType<Sphere>();
+    for (Sphere& s : spheres)
+    {
+      if (this->IsOverlapping(s)) this->ResolveCollision(s);
+    }
+  }
+#+END_SRC
+
+Do you see the problem? Let's say we have two spheres in our scene, s1
+and s2. =s1->FixedUpdate()= will cause s1 to check its collision
+against s2. Then, =s2->FixedUpdate()= will cause s2 to check its
+collision with s1. But the second check is completely unnecessary --
+we only need to resolve the collision between two spheres (or any
+shape) once. After s1 has checked against s2, that pair of shapes has
+been successfully checked and does not need to be checked again.

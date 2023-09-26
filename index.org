@@ -2,8 +2,7 @@
 
 Welcome to the lecture notes!
 
-Below is some LaTeX:
-
-$$\Delta \vec{s_1}$$
-
-[[./lecture_notes_3.org]]
+* Index of Notes
+[[./phys_week2.org][Particle Physics]]
+[[./lecture_notes_2.org][Forces and Springs]]
+[[./lecture_notes_3.org][Collision Detection]]

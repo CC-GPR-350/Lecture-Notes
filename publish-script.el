@@ -1,5 +1,7 @@
 (require 'org)
 
+(package-install 'htmlize)
+
 (setq org-publish-project-alist
  '(("website"
     :base-directory "."

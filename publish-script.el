@@ -4,7 +4,7 @@
  '(("website"
     :base-directory "."
     :base-extension "org"
-    :html-mathjax-options (path . "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js")
+    :html-mathjax-options ((path "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"))
     :publishing-function org-html-publish-to-html
     :publishing-directory "./public_html")
  ("images"

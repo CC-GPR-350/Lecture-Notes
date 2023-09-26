@@ -245,10 +245,10 @@ that $\vec{s_1}$ and $\vec{s_2}$ are no longer in contact.
 
 Another option would be to divide penetration evenly, and move each
 sphere $\frac{1}{2}p$ in the direction of $\pm\hat{n}$. This works
-when the particles have the same mass, but we would see some very
-unintuitive behavior if we experimented with using this technique of
+when the particles have the same mass, but we would see some quite
+unintuitive behavior if we experimented with using this technique on
 particles of very different masses. For example, a ping-pong ball
-hitting a bolder would move the boulder just as much as it moves the
+hitting a boulder would move the boulder just as much as it moves the
 ping-pong ball. Therefore, we still need to account for mass.
 
 ** Accounting for Mass in Displacement

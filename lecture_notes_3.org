@@ -20,7 +20,7 @@ exactly touching. In real life, physical objects can never overlap --
 they can only touch one another. So we'll "correct" the overlap to
 make our scene look natural.
 
-After correct the positions of the objects, we'll modify their
+After we correct the positions of the objects, we'll modify their
 velocities so that they "bounce" off of each other realistically.
 While in reality objects only change their velocities based off of the
 forces they experience, and so velocity is never directly modified, in
@@ -95,7 +95,7 @@ spheres:
 
 #+ATTR_HTML: :width 400px
 #+ATTR_LATEX: :width 400px
-#+CAPTION: Large spheres, small $d$ -- collidiing. Amount by which spheres overlap is in red.
+#+CAPTION: Large spheres, small $d$ -- colliding. Amount by which spheres overlap is in red.
 [[./circles_big_overlap.png]]
 
 #+ATTR_HTML: :width 400px
@@ -154,7 +154,7 @@ $$(r_1+r_2)^2 > d^2$$
 
 *** Implementing a Sphere-Sphere Overlap Check
 
-Using some C++-like pseudocde, we can implement the above check as
+Using some C++-like pseudocode, we can implement the above check as
 following:
 
 #+begin_src C++ -n
@@ -247,13 +247,13 @@ Another option would be to divide penetration evenly, and move each
 sphere $\frac{1}{2}p$ in the direction of $\pm\hat{n}$. This works
 when the particles have the same mass, but we would see some very
 unintuitive behavior if we experimented with using this technique of
-particles of very different masses. For example, a ping pong ball
+particles of very different masses. For example, a ping-pong ball
 hitting a bolder would move the boulder just as much as it moves the
-ping pong ball. Therefore, we still need to account for mass.
+ping-pong ball. Therefore, we still need to account for mass.
 
 ** Accounting for Mass in Displacement
 
-The intuivite idea behind accounting for mass is that /heavy objects
+The intuitive idea behind accounting for mass is that /heavy objects
 should move less than light objects/. We already know the total
 movement each object will make is $p$, the penetration. A nice way to
 divide this problem up is to frame it as the question, /What
@@ -265,7 +265,7 @@ and $m_2$ are the masses of sphere 1 and sphere 2, respectively, and
 $m_1=2$ and $m_2=1$, we would expect sphere 1 to move /half/ as far as
 sphere 2, because it is /twice/ as heavy.
 
-This is somewhat simplified by the the manner in which we're storing
+This is somewhat simplified by the manner in which we're storing
 our masses. We don't have direct access to $m_1$ -- instead, we have
 $m_1^{-1}$. Luckily, that makes the calculation somewhat more
 intuitive -- now, if $m_1^{-1}=2$ and $m_2^{-1}=1$, sphere 1 should
@@ -389,7 +389,7 @@ our collision algorithms as functions:
 ** Algorithms Operate on Pairs of Objects
 
 Let's assume we took the OOP approach and defined a
-=Sphere::IsOverlapping(Sphere s)= funciton. This doesn't seem so bad
+=Sphere::IsOverlapping(Sphere s)= function. This doesn't seem so bad
 -- after all, we can now test to see if two spheres are overlapping,
 and we've only implemented our algorithm once. Even in this case, we
 will run into trouble when we try to call =IsOverlapping()= on each

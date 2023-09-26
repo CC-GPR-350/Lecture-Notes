@@ -100,7 +100,7 @@ spheres:
 
 #+ATTR_HTML: :width 400px
 #+ATTR_LATEX: :width 400px
-#+CAPTION: Large spheres, small $d$ -- not colliding
+#+CAPTION: Small spheres, large $d$ -- not colliding.
 [[./circles_distant.png]]
 
 We can also see that, if $d$ is exactly equal to the sum of the radii,

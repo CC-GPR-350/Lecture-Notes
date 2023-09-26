@@ -292,8 +292,8 @@ $$\vec{\Delta s_2} = -\hat{n} d_2^{pct} p$$
 
 Or, letting $d_1 = d_1^{pct} p$ and $d_2 = d_2^{pct} p$:
 
-$$\Delta \vec{s_1} = \hat{n} d_1$$
-$$\Delta \vec{s_2} = -\hat{n} d_2$$
+$$\vec{\Delta s_1} = \hat{n} d_1$$
+$$\vec{\Delta s_2} = -\hat{n} d_2$$
 
 ** Avoiding Redundant Calculations
 

@@ -202,7 +202,7 @@ Penetration is a scalar that describes how much the spheres overlap.
 
 While it is easy to visualize, it may not be obvious how to calculate
 it. Intuitively, we know that, because the spheres are overlapping,
-$r_1 + r_2 < d$ holds. So, we need to move the spheres such that $d$
+$r_1 + r_2 > d$ holds. So, we need to move the spheres such that $d$
 increases to be exactly $r_1 + r_2$. So we need to add some value to
 $d$.
 

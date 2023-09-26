@@ -134,7 +134,7 @@ need to calculate d.
 
 If $\vec{s_1}$ and $\vec{s_2}$ are the vectors representing the center
 of sphere 1 and sphere 2 respectively, we can get the vector from
-$\vec{s_1}$ to $\vec{s_2}$ using simple vector subtraction:
+$\vec{s_2}$ to $\vec{s_1}$ using simple vector subtraction:
 
 $$\vec{d}=\vec{s_1} - \vec{s_2}$$
 
@@ -294,6 +294,13 @@ Or, letting $d_1 = d_1^{pct} p$ and $d_2 = d_2^{pct} p$:
 
 $$\vec{\Delta s_1} = \hat{n} d_1$$
 $$\vec{\Delta s_2} = -\hat{n} d_2$$
+
+We can expand these into the truly unwieldy formula:
+
+$$\vec{\Delta s_i} = \pm(\vec{s_1} - \vec{s_2}) (\frac{m_i^{-1}}{m_1^{-1} + m_2^{-1}}) (r_1 + r_2 - ||\vec{s_1} - \vec{s_2}||)$$
+
+Which looks a bit disastrous, but at allows us to write the entire
+term using only the spheres' centers, radii, and inverse masses.
 
 ** Avoiding Redundant Calculations
 

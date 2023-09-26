@@ -75,8 +75,8 @@ parts that are different.
 ** Checking If Two Spheres Overlap
 Let's consider two overlapping spheres:
 
-#+ATTR_HTML: :width 200px
-#+ATTR_LATEX: :width 200px
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
 #+CAPTION: Two Overlapping Circles.
 [[./circle_overlap_nolines.png]]
 
@@ -93,10 +93,25 @@ spheres:
 2. If the spheres are small and $d$ is large, the spheres /are _not_
    colliding/.
 
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
+#+CAPTION: Large spheres, small $d$ -- collidiing. Amount by which spheres overlap is in red.
+[[./circles_big_overlap.png]]
+
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
+#+CAPTION: Large spheres, small $d$ -- not colliding
+[[./circles_distant.png]]
+
 We can also see that, if $d$ is exactly equal to the sum of the radii,
 that is if $d = r_1+r_2$ where $r_1$ is the radius of the first sphere
 and $r_2$ is the radius of the second sphere, the spheres are
 touching, but are just short of colliding.
+
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
+#+CAPTION: Spheres that just barely touch. $d = r_1 + r_2$.
+[[./circles_adjacent.png]]
 
 #+begin_comment
 Insert a figure here with spheres just barely touching. Maybe also
@@ -180,8 +195,8 @@ to move to no longer overlap.
 
 Penetration is a scalar that describes how much the spheres overlap.
 
-#+ATTR_HTML: :width 200px
-#+ATTR_LATEX: :width 200px
+#+ATTR_HTML: :width 400px
+#+ATTR_LATEX: :width 400px
 #+CAPTION: Two Overlapping Circles. Distance is the dotted blue line. Penetration is the solid red line.
 [[./circle_overlap_highres.png]]
 
@@ -267,7 +282,7 @@ $$d_2^{pct} = \frac{m_2^{-1}}{m_1^{-1} + m_2^{-1}}$$
 where $d_1^{pct}$ and $d_2^{pct}$ are the percentages of the total
 displacement that sphere 1 and sphere 2 should adopt, respectively.
 
-** Bringing It All Togetherp
+** Bringing It All Together
 
 Finally, we can use this to determine the total displacement of sphere
 1 and sphere 2:

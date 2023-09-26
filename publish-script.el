@@ -1,6 +1,9 @@
 (require 'org)
 
-(package-install 'htmlize)
+;; Can't get this package to export to colorful HTML when called from
+;; batchmode. :(
+;; 
+;; (package-install 'htmlize)
 
 (setq org-publish-project-alist
  '(("website"

@@ -3,6 +3,6 @@
 Welcome to the lecture notes!
 
 * Index of Notes
-[[./phys_week2.org][Particle Physics]]
-[[./lecture_notes_2.org][Forces and Springs]]
-[[./lecture_notes_3.org][Collision Detection]]
+1) [[./phys_week2.org][Particle Physics]]
+2) [[./lecture_notes_2.org][Forces and Springs]]
+3) [[./lecture_notes_3.org][Collision Detection]]

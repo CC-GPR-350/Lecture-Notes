@@ -1,0 +1,9 @@
+#+TITLE: Home Page
+
+Welcome to the lecture notes!
+
+Below is some LaTeX:
+
+$$\Delta \vec{s_1}$$
+
+[[./lecture_notes_3.org]]
